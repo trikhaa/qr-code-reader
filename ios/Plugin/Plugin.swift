@@ -8,154 +8,186 @@ import AVFoundation
  */
 @objc(QRCodePlugin)
 public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
-
-    var captureSession: AVCaptureSession!
-    var previewLayer: AVCaptureVideoPreviewLayer!
-
+    
+       let captureSession = AVCaptureSession()
+       var videoLayer: AVCaptureVideoPreviewLayer?
+       
+       
+       var previewView: UIView!
+       var detectionArea: UIView!
+       var codeView: UIView!
+       var code: String!
+       
+       var isReady = false
+    
+    var callFinal :CAPPluginCall!
+       
     @objc func echo(_ call: CAPPluginCall) {
+        
         let value = call.getString("value") ?? ""
         call.success([
             "value": value
         ])
     }
-
-    @objc func scanCode(_ call: CAPPluginCall) {
-
-        captureSession = AVCaptureSession()
-        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
-            failed(call:call,message:"No Camera found") 
-            return 
-        }
-        let videoInput: AVCaptureDeviceInput
-         do {
-            videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
-        } catch {
-            failed(call:call,message:"Failed to init camera")
-            return
-        }
-        if (captureSession.canAddInput(videoInput)) {
-            captureSession.addInput(videoInput)
-        } else {
-            failed(call:call,message:"Unable to add input")
-            return
-        }
-
-        let metadataOutput = AVCaptureMetadataOutput()
-
-        if (captureSession.canAddOutput(metadataOutput)) {
-            captureSession.addOutput(metadataOutput)
-
-            metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            metadataOutput.metadataObjectTypes = [.qr]
-        } else {
-            failed(call:call,message:"Unable to add output")
-            return
-        }
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.frame = view.layer.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(previewLayer)
-
-        captureSession.startRunning()
-
-
-
-        // let contactStore = CNContactStore()
-        // var contacts = [Any]()
-        // let keys = [
-        //         CNContactFormatter.descriptorForRequiredKeys(for: .fullName),
-        //                 CNContactPhoneNumbersKey,
-        //                 CNContactEmailAddressesKey
-        //         ] as [Any]
-        // let request = CNContactFetchRequest(keysToFetch: keys as! [CNKeyDescriptor])
-        // contactStore.requestAccess(for: .contacts) { (granted, error) in
-        //     if let error = error {
-        //         print("failed to request access", error)
-        //         call.reject("access denied")
-        //         return
-        //     }
-        //     if granted {
-        //        do {
-        //            try contactStore.enumerateContacts(with: request){
-        //                    (contact, stop) in
-        //             contacts.append([
-        //                 "firstName": contact.givenName,
-        //                 "lastName": contact.familyName,
-        //                 "telephone": contact.phoneNumbers.first?.value.stringValue ?? ""
-        //             ])
-        //            }
-        //            print(contacts)
-        //            call.success([
-        //                "results": contacts
-        //            ])
-        //        } catch {
-        //            print("unable to fetch contacts")
-        //            call.reject("Unable to fetch contacts")
-        //        }
-        //     } else {
-        //         print("access denied")
-        //         call.reject("access denied")
-        //     }
-        // }
-    }
-
+    
+       @objc func scanCode(_ call: CAPPluginCall) {
+        
+        callFinal = call
+           DispatchQueue.main.async {
+               if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
+                   let x: CGFloat = 0.05
+                   let y: CGFloat = 0.3
+                   let width: CGFloat = 0.9
+                   let height: CGFloat = 0.15
+                   
+                   if !self.isReady {
+                    guard let videoDevice = AVCaptureDevice.default(for: .video) else {
+                        self.failed(call: self.callFinal,message:"No Camera found")
+                        return
+                    }
+                    let videoInput: AVCaptureDeviceInput
+                             do {
+                                videoInput = try AVCaptureDeviceInput(device: videoDevice)
+                            } catch {
+                                self.failed(call: self.callFinal,message:"Failed to init camera")
+                                return
+                            }
+                    if (self.captureSession.canAddInput(videoInput)) {
+                        self.captureSession.addInput(videoInput)
+                            } else {
+                                self.failed(call:self.callFinal,message:"Unable to add input")
+                                return
+                            }
+                       let metadataOutput = AVCaptureMetadataOutput()
+                       self.captureSession.addOutput(metadataOutput)
+                       
+                       metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+                       
+                       metadataOutput.metadataObjectTypes = [
+                           AVMetadataObject.ObjectType.qr,
+                           AVMetadataObject.ObjectType.code39,
+                           AVMetadataObject.ObjectType.ean13,
+                       ]
+                       metadataOutput.metadataObjectTypes = metadataOutput.availableMetadataObjectTypes
+                       metadataOutput.rectOfInterest = CGRect(x: y,y: 1-x-width,width: height,height: width)
+                       self.isReady = true
+                   }
+                   
+                   self.previewView = UIView()
+                   self.previewView.frame = rootViewController.view.bounds
+                   self.previewView.tag = 325973259 // rand
+                   rootViewController.view.addSubview(self.previewView)
+                   
+                   self.videoLayer = AVCaptureVideoPreviewLayer.init(session: self.captureSession)
+                   self.videoLayer?.frame = rootViewController.view.bounds
+                   self.videoLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
+                   self.previewView.layer.addSublayer(self.videoLayer!)
+                   
+                   
+                   self.detectionArea = UIView()
+                   self.detectionArea.frame = CGRect(x: rootViewController.view.frame.size.width * x, y: rootViewController.view.frame.size.height * y, width: rootViewController.view.frame.size.width * width, height: rootViewController.view.frame.size.height * height)
+                   self.detectionArea.layer.borderColor = UIColor.red.cgColor
+                   self.detectionArea.layer.borderWidth = 3
+                   self.previewView.addSubview(self.detectionArea)
+                   
+                   self.codeView = UIView()
+                   self.codeView.layer.borderWidth = 4
+                   self.codeView.layer.borderColor = UIColor.red.cgColor
+                   self.codeView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
+                   
+                   let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.tapGesture))
+                   self.codeView.addGestureRecognizer(tapGesture)
+                   
+                   self.previewView.addSubview(self.codeView)
+                   
+                   let btnClose = UIButton()
+                   btnClose.titleLabel?.textAlignment = .center
+                   btnClose.setTitle("✕", for: .normal)
+                   btnClose.setTitleColor(.white, for: .normal)
+                   btnClose.frame = CGRect(x: 20, y: 30, width: 30, height: 30)
+                   btnClose.layer.cornerRadius = btnClose.bounds.midY
+                   btnClose.backgroundColor = .black
+                   
+                   btnClose.tag = 327985328732 // rand
+                   rootViewController.view.addSubview(btnClose)
+                   
+                   let closeGesture = UITapGestureRecognizer(target: self, action: #selector(self.closeGesture))
+                   btnClose.addGestureRecognizer(closeGesture)
+                   
+                   
+                   DispatchQueue.global(qos: .userInitiated).async {
+                       if !self.captureSession.isRunning {
+                           self.captureSession.startRunning()
+                       }
+                   }
+                   
+//                   call.success([
+//                       "value": true
+//                   ])
+               }
+           }
+       }
+       
+       @objc func tapGesture(sender:UITapGestureRecognizer) {
+           NSLog("CAP: TAP" +  self.code)
+       }
+       
+       @objc func closeGesture(sender:UITapGestureRecognizer) {
+           DispatchQueue.main.async {
+               if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
+                   self.codeView.isUserInteractionEnabled = false
+                   rootViewController.view.isUserInteractionEnabled = true
+                   if let previewView = rootViewController.view.viewWithTag(325973259) {
+                       previewView.removeFromSuperview()
+                   }
+                   if let btnClose = rootViewController.view.viewWithTag(327985328732) {
+                       btnClose.removeFromSuperview()
+                   }
+                   if self.captureSession.isRunning {
+                       self.captureSession.stopRunning()
+                   }
+               }
+           }
+       }
+       
+       
+       public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+           // 複数のメタデータを検出できる
+           for metadata in metadataObjects as! [AVMetadataMachineReadableCodeObject] {
+               // コード内容の確認
+               //            if Set(arrayLiteral: AVMetadataObject.ObjectType.qr, AVMetadataObject.ObjectType.code39, AVMetadataObject.ObjectType.ean13).contains(metadata.type) {
+               if metadata.stringValue != nil {
+                   // 検出位置を取得
+                   let barCode = self.videoLayer?.transformedMetadataObject(for: metadata) as! AVMetadataMachineReadableCodeObject
+                   if barCode.bounds.height != 0 && self.code != metadata.stringValue {
+                       AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                       self.codeView!.frame = barCode.bounds
+                       self.code = metadata.stringValue!
+                    
+                    var contacts = [Any]()
+                   contacts.append([
+                       "text": self.code,
+                       "format": "stringType",
+                       "cancelled": "false"
+                   ])
+                   callFinal.success([
+                       "results": contacts
+                   ])
+                    if (captureSession.isRunning == true) {
+                     captureSession.stopRunning()
+                    }
+                        
+                   }
+               }
+           }
+       }
+    
     func failed(call :CAPPluginCall,message:String) {
-        call.reject(message)
-        captureSession = nil
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        if (captureSession?.isRunning == false) {
-            captureSession.startRunning()
-        }
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        if (captureSession?.isRunning == true) {
+        if (captureSession.isRunning == true) {
             captureSession.stopRunning()
         }
+        call.reject(message)
     }
-
-    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-        captureSession.stopRunning()
-
-        if let metadataObject = metadataObjects.first {
-            guard let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject else { 
-                failed(call:call,message:"Unable to read output")
-                return }
-            guard let stringType = readableObject.type else { 
-                failed(call:call,message:"Unable to read output")
-                return
-             }
-            guard let stringValue = readableObject.stringValue else { 
-                failed(call:call,message:"Unable to read output")
-                return
-             }
-
-            var contacts = [Any]()
-            contacts.append([
-                "text": stringValue,
-                "format": stringType,
-                "cancelled": "false"
-            ])
-            call.success([
-                "results": contacts
-            ])
-        }
-
-        dismiss(animated: true)
-    }
-
-
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
-
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return .portrait
-    }
+    
+  
 }
