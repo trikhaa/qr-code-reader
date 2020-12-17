@@ -120,10 +120,6 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                            self.captureSession.startRunning()
                        }
                    }
-                   
-//                   call.success([
-//                       "value": true
-//                   ])
                }
            }
        }
@@ -152,12 +148,8 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
        
        
        public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-           // 複数のメタデータを検出できる
            for metadata in metadataObjects as! [AVMetadataMachineReadableCodeObject] {
-               // コード内容の確認
-               //            if Set(arrayLiteral: AVMetadataObject.ObjectType.qr, AVMetadataObject.ObjectType.code39, AVMetadataObject.ObjectType.ean13).contains(metadata.type) {
                if metadata.stringValue != nil {
-                   // 検出位置を取得
                    let barCode = self.videoLayer?.transformedMetadataObject(for: metadata) as! AVMetadataMachineReadableCodeObject
                    if barCode.bounds.height != 0 && self.code != metadata.stringValue {
                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
