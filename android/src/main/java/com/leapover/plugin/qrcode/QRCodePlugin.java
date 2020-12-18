@@ -1,8 +1,11 @@
 package com.leapover.plugin.qrcode;
 
+
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
@@ -85,7 +88,8 @@ public class QRCodePlugin extends Plugin {
     }
 
     void scanQRCode(PluginCall call) {
-        Intent intentScan = new Intent(getContext(), CaptureActivity.class);
+        Intent intentScan = new Intent(getContext(), PortraitActivity.class);
+        intentScan.putExtra(Intents.Scan.ORIENTATION_LOCKED, false);
         intentScan.setAction(Intents.Scan.ACTION);
         intentScan.addCategory(Intent.CATEGORY_DEFAULT);
         intentScan.setPackage(getContext().getApplicationContext().getPackageName());
