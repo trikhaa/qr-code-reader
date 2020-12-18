@@ -78,7 +78,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 self.previewView.frame = rootViewController.view.bounds
                 self.previewView.tag = 325973259 // rand
                 rootViewController.view.addSubview(self.previewView)
-                
+                                
                 self.videoLayer = AVCaptureVideoPreviewLayer.init(session: self.captureSession)
                 self.videoLayer?.frame = rootViewController.view.bounds
                 self.videoLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
@@ -87,13 +87,13 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 
                 self.detectionArea = UIView()
                 self.detectionArea.frame = CGRect(x: rootViewController.view.frame.size.width * x, y: rootViewController.view.frame.size.height * y, width: rootViewController.view.frame.size.width * width, height: rootViewController.view.frame.size.height * height)
-                self.detectionArea.layer.borderColor = UIColor.red.cgColor
+                self.detectionArea.layer.borderColor = UIColor.white.cgColor
                 self.detectionArea.layer.borderWidth = 3
                 self.previewView.addSubview(self.detectionArea)
                 
                 self.codeView = UIView()
                 self.codeView.layer.borderWidth = 4
-                self.codeView.layer.borderColor = UIColor.red.cgColor
+                self.codeView.layer.borderColor = UIColor.white.cgColor
                 self.codeView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
                 
                 let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.tapGesture))
