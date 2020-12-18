@@ -1,5 +1,9 @@
+<manifest package="com.leapover.plugin.qrcode.qrcodeplugin"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.leapover.plugin.qrcode.qrcodeplugin">
-  </manifest>
+    <application>
+      <activity android:name="com.leapover.plugin.qrcode.PortraitActivity"
+          android:screenOrientation="fullSensor"/>
+    </application>
+</manifest>
   
