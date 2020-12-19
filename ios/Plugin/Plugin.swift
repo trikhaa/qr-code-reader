@@ -12,6 +12,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     let captureSession = AVCaptureSession()
     var videoLayer: AVCaptureVideoPreviewLayer?
     
+    let maskColor = UIColor.black.cgColor.copy(alpha: 0.5)
     
     var previewView: UIView!
     var detectionArea: UIView!
@@ -84,15 +85,28 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 self.videoLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
                 self.previewView.layer.addSublayer(self.videoLayer!)
                 
+                let frameH = rootViewController.view.frame.size.height
+                let frameW = rootViewController.view.frame.size.width
                 
+                let dXStart = frameW * x
+                let dYStart = frameH * y
+                
+                let dXEnd = dXStart + frameW * width
+                let dYEnd = dYStart + frameH * height
+
+                self.previewView.addSubview(self.getMask(x:0, y: 0, width: frameW, height: dYStart))  //top mask
+                self.previewView.addSubview(self.getMask(x:0, y: dYEnd, width: frameW, height: dYStart)) //bottom mask
+                self.previewView.addSubview(self.getMask(x: 0, y: dYStart, width: dXStart, height: frameH * height)) //left mask
+                self.previewView.addSubview(self.getMask(x: dXEnd, y: dYStart, width: dXStart, height: frameH * height)) //right mask
+
                 self.detectionArea = UIView()
-                self.detectionArea.frame = CGRect(x: rootViewController.view.frame.size.width * x, y: rootViewController.view.frame.size.height * y, width: rootViewController.view.frame.size.width * width, height: rootViewController.view.frame.size.height * height)
+                self.detectionArea.frame = CGRect(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height)
                 self.detectionArea.layer.borderColor = UIColor.white.cgColor
-                self.detectionArea.layer.borderWidth = 3
+                self.detectionArea.layer.borderWidth = 1
                 self.previewView.addSubview(self.detectionArea)
-                
+
                 self.codeView = UIView()
-                self.codeView.layer.borderWidth = 4
+                self.codeView.layer.borderWidth = 1
                 self.codeView.layer.borderColor = UIColor.white.cgColor
                 self.codeView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
                 
@@ -123,6 +137,13 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 }
             }
         }
+    }
+    
+    func getMask(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> UIView {
+        let mask: UIView = UIView()
+        mask.frame = CGRect(x: x, y: y, width: width, height: height)
+        mask.layer.backgroundColor = self.maskColor
+        return mask
     }
     
     @objc func tapGesture(sender:UITapGestureRecognizer) {
@@ -156,7 +177,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         for metadata in metadataObjects as! [AVMetadataMachineReadableCodeObject] {
             if metadata.stringValue != nil {
                 let barCode = self.videoLayer?.transformedMetadataObject(for: metadata) as! AVMetadataMachineReadableCodeObject
-                if barCode.bounds.height != 0 && self.code != metadata.stringValue {
+                if barCode.bounds.height != 0 {
                     AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                     self.codeView!.frame = barCode.bounds
                     self.code = metadata.stringValue!
