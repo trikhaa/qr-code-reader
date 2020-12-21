@@ -12,8 +12,6 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     let captureSession = AVCaptureSession()
     var videoLayer: AVCaptureVideoPreviewLayer?
     
-    let maskColor = UIColor.black.cgColor.copy(alpha: 0.5)
-    
     var previewView: UIView!
     var detectionArea: UIView!
     var codeView: UIView!
@@ -142,7 +140,21 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
     func getMask(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> UIView {
         let mask: UIView = UIView()
         mask.frame = CGRect(x: x, y: y, width: width, height: height)
-        mask.layer.backgroundColor = self.maskColor
+        
+        let blurEffect = UIBlurEffect(style: .regular)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        mask.addSubview(blurView)
+        
+        NSLayoutConstraint.activate(
+            [
+                blurView.leadingAnchor.constraint(equalTo: mask.leadingAnchor),
+                blurView.trailingAnchor.constraint(equalTo: mask.trailingAnchor),
+                blurView.widthAnchor.constraint(equalTo: mask.widthAnchor),
+                blurView.heightAnchor.constraint(equalTo: mask.heightAnchor)
+            ]
+        )
+        
         return mask
     }
     
