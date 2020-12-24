@@ -35,9 +35,9 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         callFinal = call
         DispatchQueue.main.async {
             if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
-                let x: CGFloat = 0.05
-                let y: CGFloat = 0.3
-                let width: CGFloat = 0.9
+                let x: CGFloat = 0.1
+                let y: CGFloat = 0.25
+                let width: CGFloat = 0.8
                 let height: CGFloat = 0.5
                 
                 if !self.isReady {
@@ -89,18 +89,13 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 let dXStart = frameW * x
                 let dYStart = frameH * y
                 
-                let dXEnd = dXStart + frameW * width
-                let dYEnd = dYStart + frameH * height
-
-                self.previewView.addSubview(self.getMask(x:0, y: 0, width: frameW, height: dYStart))  //top mask
-                self.previewView.addSubview(self.getMask(x:0, y: dYEnd, width: frameW, height: dYStart)) //bottom mask
-                self.previewView.addSubview(self.getMask(x: 0, y: dYStart, width: dXStart, height: frameH * height)) //left mask
-                self.previewView.addSubview(self.getMask(x: dXEnd, y: dYStart, width: dXStart, height: frameH * height)) //right mask
+                self.previewView.addSubview(self.getNewMask(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height, frameW: frameW, frameH: frameH))  //single mask
 
                 self.detectionArea = UIView()
                 self.detectionArea.frame = CGRect(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height)
                 self.detectionArea.layer.borderColor = UIColor.white.cgColor
-                self.detectionArea.layer.borderWidth = 1
+                self.detectionArea.layer.borderWidth = 2
+                self.detectionArea.layer.cornerRadius = 20
                 self.previewView.addSubview(self.detectionArea)
 
                 self.codeView = UIView()
@@ -154,6 +149,43 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 blurView.heightAnchor.constraint(equalTo: mask.heightAnchor)
             ]
         )
+        
+        return mask
+    }
+    
+    func getNewMask(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, frameW: CGFloat, frameH: CGFloat) -> UIView {
+        let mask: UIView = UIView()
+        mask.frame = CGRect(x: 0, y: 0, width: frameW, height: frameH)
+
+//        let blurEffect = UIBlurEffect(style: .light)
+//        let blurView = UIVisualEffectView(effect: blurEffect)
+//        blurView.translatesAutoresizingMaskIntoConstraints = false
+//        mask.addSubview(blurView)
+//
+//        NSLayoutConstraint.activate(
+//            [
+//                blurView.leadingAnchor.constraint(equalTo: mask.leadingAnchor),
+//                blurView.trailingAnchor.constraint(equalTo: mask.trailingAnchor),
+//                blurView.widthAnchor.constraint(equalTo: mask.widthAnchor),
+//                blurView.heightAnchor.constraint(equalTo: mask.heightAnchor)
+//            ]
+//        )
+
+
+        mask.clipsToBounds = true
+        
+        let outerbezierPath = UIBezierPath.init(roundedRect: mask.bounds, cornerRadius: 0)
+        let rect = CGRect(x: x-10, y: y-10, width: width+20, height: height+20)
+        let innerPath = UIBezierPath.init(roundedRect:rect, cornerRadius: 20)
+        outerbezierPath.append(innerPath)
+        outerbezierPath.usesEvenOddFillRule = true
+
+        let fillLayer = CAShapeLayer()
+        fillLayer.fillRule = CAShapeLayerFillRule.evenOdd
+        fillLayer.fillColor = UIColor.black.cgColor.copy(alpha: 0.8)
+        fillLayer.path = outerbezierPath.cgPath
+                
+        mask.layer.addSublayer(fillLayer)
         
         return mask
     }
