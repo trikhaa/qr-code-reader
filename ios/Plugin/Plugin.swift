@@ -95,7 +95,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 self.detectionArea.frame = CGRect(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height)
                 self.detectionArea.layer.borderColor = UIColor.white.cgColor
                 self.detectionArea.layer.borderWidth = 2
-                self.detectionArea.layer.cornerRadius = 20
+                //self.detectionArea.layer.cornerRadius = 20
                 self.previewView.addSubview(self.detectionArea)
 
                 self.codeView = UIView()
