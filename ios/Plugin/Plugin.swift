@@ -174,7 +174,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         mask.clipsToBounds = true
         
-        let outerbezierPath = UIBezierPath.init(roundedRect: mask.bounds, cornerRadius: 0)
+        let outerbezierPath = UIBezierPath.init(roundedRect: mask.bounds, cornerRadius: 20)
         let rect = CGRect(x: x-10, y: y-10, width: width+20, height: height+20)
         let innerPath = UIBezierPath.init(roundedRect:rect, cornerRadius: 20)
         outerbezierPath.append(innerPath)
