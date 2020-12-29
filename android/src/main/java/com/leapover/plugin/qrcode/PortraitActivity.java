@@ -1,5 +1,6 @@
 package com.leapover.plugin.qrcode;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -16,6 +17,8 @@ public class PortraitActivity extends CaptureActivity implements DecoratedBarcod
         super.onCreate(savedInstanceState);
         ViewfinderView viewfinderView = findViewById(R.id.zxing_viewfinder_view);
         viewfinderView.setLaserVisibility(false);
+        viewfinderView.setPossiblePointsVisibility(false);
+        viewfinderView.showInnerSquare(40, 40, 4, Color.WHITE);
         TextView statusView = findViewById(R.id.zxing_status_view);
         statusView.setVisibility(View.GONE);
     }

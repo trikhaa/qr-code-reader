@@ -34,6 +34,10 @@ android {
     lintOptions {
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 repositories {
@@ -49,6 +53,6 @@ dependencies {
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
-
-    implementation 'com.journeyapps:zxing-android-embedded:4.1.0'
+	implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'com.google.zxing:core:3.2.0'
 }
