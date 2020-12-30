@@ -95,7 +95,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 self.detectionArea.frame = CGRect(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height)
                 self.detectionArea.layer.borderColor = UIColor.white.cgColor
                 self.detectionArea.layer.borderWidth = 2
-                //self.detectionArea.layer.cornerRadius = 20
+                self.detectionArea.layer.cornerRadius = 20
                 self.previewView.addSubview(self.detectionArea)
 
                 self.codeView = UIView()
@@ -174,7 +174,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
 
         mask.clipsToBounds = true
         
-        let outerbezierPath = UIBezierPath.init(roundedRect: mask.bounds, cornerRadius: 20)
+        let outerbezierPath = UIBezierPath.init(roundedRect: mask.bounds, cornerRadius: 0)
         let rect = CGRect(x: x-10, y: y-10, width: width+20, height: height+20)
         let innerPath = UIBezierPath.init(roundedRect:rect, cornerRadius: 20)
         outerbezierPath.append(innerPath)
