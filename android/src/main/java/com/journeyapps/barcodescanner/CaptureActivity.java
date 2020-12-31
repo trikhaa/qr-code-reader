@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import android.view.KeyEvent;
+import android.view.View;
 
 import com.leapover.plugin.qrcode.qrcodeplugin.R;
 
@@ -67,5 +68,9 @@ public class CaptureActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         return barcodeScannerView.onKeyDown(keyCode, event) || super.onKeyDown(keyCode, event);
+    }
+
+    public void sendBack(final View view) {
+        onBackPressed();
     }
 }
