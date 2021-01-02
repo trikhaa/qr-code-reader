@@ -89,10 +89,22 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 let dXStart = frameW * x
                 let dYStart = frameH * y
                 
-                self.previewView.addSubview(self.getNewMask(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height, frameW: frameW, frameH: frameH))  //single mask
+                let app: UIApplication =  UIApplication.shared;
+                var statusBarHeight: CGFloat = 0;
+                if(!app.isStatusBarHidden) {
+                    statusBarHeight = app.statusBarFrame.size.height;
+                }
+                
+                //self.setStatusBarBackgroundColor();
+
+                if (statusBarHeight > 0) {
+                    self.previewView.addSubview(self.getStatusMask(frameW: frameW, statusBarHeight: statusBarHeight))
+                }
+                
+                self.previewView.addSubview(self.getNewMask(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height, frameW: frameW, frameH: frameH, statusBarHeight: statusBarHeight))  //single mask
 
                 self.detectionArea = UIView()
-                self.detectionArea.frame = CGRect(x: dXStart, y: dYStart, width: frameW * width, height: frameH * height)
+                self.detectionArea.frame = CGRect(x: dXStart, y: dYStart + statusBarHeight, width: frameW * width, height: frameH * height)
                 self.detectionArea.layer.borderColor = UIColor.white.cgColor
                 self.detectionArea.layer.borderWidth = 2
                 self.detectionArea.layer.cornerRadius = 20
@@ -112,7 +124,7 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
                 btnClose.titleLabel?.textAlignment = .center
                 btnClose.setTitle("✕", for: .normal)
                 btnClose.setTitleColor(.white, for: .normal)
-                btnClose.frame = CGRect(x: 20, y: 30, width: 30, height: 30)
+                btnClose.frame = CGRect(x: 20, y: 20+statusBarHeight, width: 30, height: 30)
                 btnClose.layer.cornerRadius = btnClose.bounds.midY
                 btnClose.backgroundColor = .black
                 
@@ -152,10 +164,17 @@ public class QRCodePlugin: CAPPlugin, AVCaptureMetadataOutputObjectsDelegate {
         
         return mask
     }
-    
-    func getNewMask(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, frameW: CGFloat, frameH: CGFloat) -> UIView {
+
+    func getStatusMask(frameW: CGFloat, statusBarHeight: CGFloat) -> UIView {
         let mask: UIView = UIView()
-        mask.frame = CGRect(x: 0, y: 0, width: frameW, height: frameH)
+        mask.frame = CGRect(x: 0, y: 0, width: frameW, height: statusBarHeight)
+        mask.backgroundColor = UIColor.blue
+        return mask
+    }
+
+    func getNewMask(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, frameW: CGFloat, frameH: CGFloat, statusBarHeight: CGFloat) -> UIView {
+        let mask: UIView = UIView()
+        mask.frame = CGRect(x: 0, y: statusBarHeight, width: frameW, height: frameH-statusBarHeight)
 
 //        let blurEffect = UIBlurEffect(style: .light)
 //        let blurView = UIVisualEffectView(effect: blurEffect)
